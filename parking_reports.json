@@ -1,0 +1,11 @@
+[
+  {
+    "lat": 12.8,
+    "lng": 80.0,
+    "status": "High",
+    "hour": 20,
+    "location_type": "generic",
+    "timestamp": "2026-05-03T20:40:53.268069",
+    "is_new_spot": false
+  }
+]
