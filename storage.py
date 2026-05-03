@@ -58,11 +58,15 @@ class ParkNavStorage:
             json.dump(data, f, indent=2)
 
     def _headers(self):
-        return {
+        headers = {
             'apikey': self.supabase_key,
-            'Authorization': f'Bearer {self.supabase_key}',
             'Content-Type': 'application/json',
         }
+        # Supabase secret keys (sb_secret_...) are not JWTs and should not be
+        # sent as Bearer tokens. Legacy service_role keys still expect it.
+        if not self.supabase_key.startswith('sb_'):
+            headers['Authorization'] = f'Bearer {self.supabase_key}'
+        return headers
 
     def _state_url(self, key=None, upsert=False):
         base = f'{self.supabase_url}/rest/v1/parknav_state'
