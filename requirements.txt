@@ -1,6 +1,6 @@
 flask
 flask-cors
 numpy
-xgboost
+xgboost-cpu==3.2.0
 google-genai
 python-dotenv

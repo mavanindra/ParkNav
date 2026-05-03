@@ -1,0 +1,7 @@
+.env
+.env.example
+ParkNav_AI_PRD.md
+README.md
+model.pkl
+static/
+supabase_schema.sql
