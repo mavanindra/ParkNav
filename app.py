@@ -577,11 +577,11 @@ def feedback():
     """
     try:
         data = request.get_json(force=True)
-        lat = float(data.get('lat', 0))
-        lng = float(data.get('lng', 0))
-        fb_status = data.get('status', 'available')
-        hour = int(data.get('hour', datetime.datetime.now().hour))
-        location_type = data.get('location_type', 'generic')
+        lat = float(data.get('lat') or 0)
+        lng = float(data.get('lng') or 0)
+        fb_status = data.get('status') or 'available'
+        hour = int(data.get('hour') or datetime.datetime.now().hour)
+        location_type = data.get('location_type') or 'generic'
         is_new_spot = data.get('is_new_spot', False)
 
         # 1. Save report

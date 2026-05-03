@@ -2324,7 +2324,7 @@
           <button class="brutal-btn px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider" onclick="event.stopPropagation();navigateToSpot(${s.lat},${s.lng},'${safeN}')">
             <span class="material-symbols-outlined text-[12px]">navigation</span> Route
           </button>
-          <button class="brutal-btn px-2 py-1.5 text-[10px] opacity-60" onclick="event.stopPropagation();submitFeedback('${s.id}','${s.status}',${s.lat},${s.lng})" title="Confirm availability">
+          <button class="brutal-btn px-2 py-1.5 text-[10px] opacity-60" onclick="event.stopPropagation();submitFeedback('${s.id}','available',${s.lat},${s.lng})" title="Confirm availability">
             <span class="material-symbols-outlined text-[12px]">thumb_up</span>
           </button>
         </div>
@@ -2945,8 +2945,8 @@
           showToast(msg);
           await fetchBackendInsights();
         }
-        else showToast('Feedback failed');
-      } catch (e) { showToast('Network error'); }
+        else showToast('Feedback failed: ' + (data.error || 'Unknown error'));
+      } catch (e) { showToast('Network error: ' + e); }
     }
 
     function showToast(msg) {

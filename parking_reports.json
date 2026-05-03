@@ -7,5 +7,32 @@
     "location_type": "generic",
     "timestamp": "2026-05-03T20:40:53.268069",
     "is_new_spot": false
+  },
+  {
+    "lat": 12.0,
+    "lng": 80.0,
+    "status": "high",
+    "hour": 14,
+    "location_type": "generic",
+    "timestamp": "2026-05-04T01:22:22.227080",
+    "is_new_spot": false
+  },
+  {
+    "lat": 12.0,
+    "lng": 80.0,
+    "status": "available",
+    "hour": 14,
+    "location_type": "generic",
+    "timestamp": "2026-05-04T01:24:00.225006",
+    "is_new_spot": false
+  },
+  {
+    "lat": 0.0,
+    "lng": 0.0,
+    "status": "available",
+    "hour": 14,
+    "location_type": "generic",
+    "timestamp": "2026-05-04T01:29:09.508321",
+    "is_new_spot": false
   }
 ]

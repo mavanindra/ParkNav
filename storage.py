@@ -93,7 +93,7 @@ class ParkNavStorage:
         payload = json.dumps({
             'key': key,
             'value': value,
-            'updated_at': datetime.datetime.now(datetime.UTC).isoformat(),
+            'updated_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }).encode('utf-8')
         headers = self._headers()
         headers['Prefer'] = 'resolution=merge-duplicates,return=minimal'
