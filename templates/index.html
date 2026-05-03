@@ -69,6 +69,13 @@
     }
 
     /* ── Theme: body classes ── */
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
     body {
       transition: background-color .3s, color .3s;
     }
@@ -396,7 +403,7 @@
     #app {
       display: flex;
       flex-direction: column;
-      height: 100vh;
+      height: 100dvh;
       overflow: hidden;
     }
 
@@ -569,6 +576,61 @@
     }
 
     /* ── Animations ── */
+    .user-location-dot,
+    .user-navigation-pointer {
+      width: 32px;
+      height: 32px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .user-location-dot::before {
+      content: "";
+      width: 16px;
+      height: 16px;
+      border-radius: 9999px;
+      background: #0b57d0;
+      border: 3px solid #fff;
+      box-shadow: 0 2px 12px rgba(11, 87, 208, .45);
+      z-index: 1;
+    }
+
+    .user-location-dot::after {
+      content: "";
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      border-radius: 9999px;
+      background: rgba(11, 87, 208, .16);
+    }
+
+    .user-navigation-pointer {
+      transition: transform .35s ease-out;
+      filter: drop-shadow(0 3px 8px rgba(0, 0, 0, .28));
+    }
+
+    .user-navigation-pointer::before {
+      content: "";
+      width: 0;
+      height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-bottom: 26px solid #0b57d0;
+      transform: translateY(-2px);
+    }
+
+    .user-navigation-pointer::after {
+      content: "";
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 9999px;
+      background: #fff;
+      bottom: 8px;
+    }
+
     @keyframes fadeInUp {
       from {
         opacity: 0;
@@ -798,6 +860,22 @@
 
     /* ── Mobile Responsiveness ── */
     @media (max-width: 768px) {
+      html,
+      body {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100dvh;
+        overflow: hidden !important;
+      }
+
+      #app {
+        width: 100%;
+        height: 100dvh;
+        max-height: 100dvh;
+        overflow: hidden !important;
+      }
+
       #sidebar {
         display: none !important;
       }
@@ -868,15 +946,29 @@
       /* Content must account for floating bottom nav */
       #content {
         padding-bottom: 0;
+        min-height: 0 !important;
+        overflow: hidden !important;
       }
 
       #main-layout {
-        height: calc(100vh - 52px - 72px);
+        height: calc(100dvh - 52px - 72px);
+        min-height: 0 !important;
+        overflow: hidden !important;
+      }
+
+      #navigationView {
+        height: 100% !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+      }
+
+      #navigationView>.flex-1 {
+        min-height: 0 !important;
       }
 
       /* Navigation elements — text truncation fixes */
       #navSlide {
-        top: 6px !important;
+        top: calc(env(safe-area-inset-top, 0px) + 6px) !important;
         left: 50% !important;
         transform: translateX(-50%) !important;
         width: 92% !important;
@@ -903,14 +995,54 @@
         text-overflow: ellipsis !important;
       }
 
-      #speedometer {
+      #speedometer.hidden {
         display: none !important;
+      }
+
+      #speedometer:not(.hidden) {
+        display: flex !important;
+        top: auto !important;
+        right: 12px !important;
+        left: 12px !important;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 84px) !important;
+        min-width: 0 !important;
+        width: auto !important;
+        padding: 10px 12px !important;
+        gap: 10px !important;
+        z-index: 46 !important;
+      }
+
+      #speedometer .w-10 {
+        width: 34px !important;
+        height: 34px !important;
+      }
+
+      #speedometer .material-symbols-outlined {
+        font-size: 18px !important;
+      }
+
+      #speedometer .min-w-\[88px\] {
+        min-width: 56px !important;
+      }
+
+      #speedometer .text-xl {
+        font-size: 18px !important;
+        line-height: 1.1 !important;
+      }
+
+      #speedometer .text-sm {
+        font-size: 13px !important;
+      }
+
+      #speedometer .text-xs {
+        font-size: 10px !important;
       }
 
       /* Spot modal — fixed above floating nav */
       #spotModal {
-        bottom: 80px !important;
-        width: 92% !important;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 78px) !important;
+        width: calc(100vw - 32px) !important;
+        max-width: calc(100vw - 32px) !important;
         padding: 0 !important;
         left: 50% !important;
         transform: translateX(-50%) !important;
@@ -919,8 +1051,10 @@
       #spotModal .brutal-card {
         flex-direction: column !important;
         gap: 8px !important;
-        padding: 14px !important;
+        padding: 12px !important;
         overflow: hidden !important;
+        width: 100% !important;
+        max-height: calc(100dvh - 210px) !important;
       }
 
       #spotModal .brutal-card>.w-12 {
@@ -942,7 +1076,28 @@
         text-overflow: ellipsis !important;
       }
 
+      #modalInfo {
+        display: block !important;
+        max-width: 100% !important;
+        white-space: normal !important;
+        overflow: hidden !important;
+        text-overflow: clip !important;
+        line-height: 1.25 !important;
+      }
+
+      #modalInfo .route-note {
+        display: block !important;
+        max-width: 100% !important;
+        margin-top: 4px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        font-size: 10px !important;
+        line-height: 1.2 !important;
+      }
+
       #spotModal .brutal-card .flex.gap-2 {
+        width: 100% !important;
         flex-wrap: wrap !important;
         justify-content: center !important;
         gap: 6px !important;
@@ -955,21 +1110,29 @@
 
       /* Chat */
       #chatFab {
-        bottom: 84px !important;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 82px) !important;
         right: 14px !important;
         width: 44px !important;
         height: 44px !important;
       }
 
       #toast {
-        bottom: 84px !important;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 82px) !important;
       }
 
       #chat-window {
-        bottom: 140px !important;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 138px) !important;
         width: calc(100vw - 1.5rem) !important;
         right: .75rem !important;
         height: 380px !important;
+      }
+
+      #recenterNavBtn {
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 150px) !important;
+        right: 14px !important;
+        width: 46px !important;
+        height: 46px !important;
+        padding: 0 !important;
       }
 
       /* Dashboard padding & KPI text fixes */
@@ -1002,6 +1165,15 @@
     /* ── Floating Bottom Nav ── */
     .mobile-bottom-nav {
       display: none;
+    }
+
+    @media (max-width: 768px) {
+      .mobile-bottom-nav {
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 10px) !important;
+        left: 12px !important;
+        right: 12px !important;
+        height: 58px !important;
+      }
     }
 
     /* Nexus — brutalist floating pill */
@@ -1179,6 +1351,9 @@
 
     [data-theme="chromatic"] .theme-dot {
       border-color: rgba(255, 255, 255, 0.15);
+    }    /* Force hide default zoom controls */
+    .leaflet-control-zoom {
+      display: none !important;
     }
   </style>
 </head>
@@ -1289,7 +1464,7 @@
             </div>
             <div class="brutal-card flex-1 min-w-[200px] p-5">
               <p class="text-xs font-bold uppercase tracking-wider opacity-50 mb-1"
-                style="font-family:'Space Grotesk',sans-serif">XGBoost Confidence</p>
+                style="font-family:'Space Grotesk',sans-serif">Prediction Confidence</p>
               <p class="text-4xl font-black" id="kpiConfidence">—</p>
             </div>
             <div class="brutal-card flex-1 min-w-[200px] p-5">
@@ -1381,8 +1556,9 @@
             </div>
 
             <!-- Recenter Button -->
-            <button id="recenterNavBtn" class="hidden absolute bottom-8 right-8 z-[9999] bg-white text-blue-600 rounded-full px-5 py-3 shadow-2xl font-bold uppercase tracking-wider text-xs border border-gray-200 dark:bg-[#1d2022] dark:text-[#4cd7f6] dark:border-[#47464a] flex items-center gap-2 transition-all hover:scale-105 active:scale-95" onclick="recenterNavigation()">
-              <span class="material-symbols-outlined text-[18px]">my_location</span> Recenter
+            <button id="recenterNavBtn" class="hidden absolute bottom-8 right-8 z-[9999] bg-white text-blue-600 rounded-full h-12 px-4 shadow-2xl border border-gray-200 dark:bg-[#1d2022] dark:text-[#4cd7f6] dark:border-[#47464a] flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95" onclick="recenterNavigation()" title="Recenter">
+              <span class="material-symbols-outlined text-[24px]">my_location</span>
+              <span class="recenter-label text-[11px] font-bold uppercase tracking-wider">Recenter</span>
             </button>
 
             <!-- Selected Spot Action Bar -->
@@ -1530,6 +1706,7 @@
       routeLayer: null, userMarker: null, hasFetched: false, geoWatchId: null,
       currentDest: null, navigating: false, routeTotalKm: 0, routeDurationMin: 0,
       lastNavSample: null, currentSpeedKmh: 0, recentSearches: [],
+      routeCoords: [], bearing: 0,
       destinationMarker: null, learnedSpots: [],
       savedLocations: JSON.parse(localStorage.getItem('pn-saved') || '[]')
     };
@@ -1651,7 +1828,6 @@
     function initMaps() {
       // Navigation map (full)
       S.map = L.map('map', { zoomControl: false }).setView([S.lat, S.lng], 15);
-      L.control.zoom({ position: 'bottomright' }).addTo(S.map);
       S.tileLayer = L.tileLayer(TILES.light, {
         subdomains: 'abc',
         maxZoom: 22,
@@ -1725,6 +1901,21 @@
       return { lat: S.lat, lng: S.lng };
     }
 
+    function isMobileView() {
+      return window.matchMedia('(max-width: 768px)').matches;
+    }
+
+    function setChatFabVisibleForState() {
+      const chatWindow = document.getElementById('chat-window');
+      const chatFabEl = document.getElementById('chatFab');
+      const spotModal = document.getElementById('spotModal');
+      if (!chatFabEl) return;
+      const modalOpenOnMobile = isMobileView() && spotModal && !spotModal.classList.contains('hidden');
+      const activeNavigationOnMobile = isMobileView() && S.navigating;
+      const chatOpen = chatWindow && chatWindow.classList.contains('open');
+      chatFabEl.style.display = (modalOpenOnMobile || activeNavigationOnMobile || chatOpen) ? 'none' : 'flex';
+    }
+
     function resetNavigationUI(message = 'Navigation stopped.') {
       document.getElementById('spotModal').classList.add('hidden');
       document.getElementById('navSlide').classList.add('hidden');
@@ -1739,6 +1930,7 @@
       }
       S.navigating = false;
       S.autoCenter = true;
+      S.routeCoords = [];
       const recenterBtn = document.getElementById('recenterNavBtn');
       if (recenterBtn) recenterBtn.classList.add('hidden');
       document.getElementById('speedometer').classList.add('hidden');
@@ -1750,9 +1942,10 @@
       document.getElementById('remainingDistance').textContent = '0.0';
       document.getElementById('etaValue').textContent = '--';
       document.getElementById('navSlideMeta').textContent = message;
-      const mapContainer = document.getElementById('map');
-      if (mapContainer) {
-        mapContainer.style.transform = 'none';
+      setChatFabVisibleForState();
+      clearNavigationMapRotation();
+      if (S.userLat !== null && S.userLng !== null) {
+        updateUserLocationMarker(S.userLat, S.userLng, false);
       }
     }
 
@@ -1766,11 +1959,7 @@
           p => {
             S.userLat = p.coords.latitude;
             S.userLng = p.coords.longitude;
-            if (S.userMarker) {
-              S.userMarker.setLatLng([S.userLat, S.userLng]);
-            } else {
-              S.userMarker = L.circleMarker([S.userLat, S.userLng], { radius: 8, fillColor: '#0041c9', fillOpacity: 1, color: '#fff', weight: 3 }).addTo(S.map);
-            }
+            updateUserLocationMarker(S.userLat, S.userLng, S.navigating);
             resolve({ lat: S.userLat, lng: S.userLng });
           },
           () => resolve(getCurrentMapCenter()),
@@ -1817,6 +2006,14 @@
       } else {
         recentEl.innerHTML = S.recentSearches.slice(0, 5).map(item => `<p class="truncate">• ${item}</p>`).join('');
       }
+    }
+
+    function getClientTimeContext() {
+      const now = new Date();
+      return {
+        hour: now.getHours(),
+        day_of_week: (now.getDay() + 6) % 7
+      };
     }
 
     async function fetchBackendInsights() {
@@ -1874,6 +2071,110 @@
 
     // Geolocation — single canonical definition
     // (event listeners are attached in DOMContentLoaded below)
+
+    function getUserLocationIcon(isNavigating = false, bearing = 0) {
+      if (!isNavigating) {
+        return L.divIcon({
+          html: '<div class="user-location-dot"></div>',
+          className: 'user-location-icon',
+          iconSize: [32, 32],
+          iconAnchor: [16, 16]
+        });
+      }
+      return L.divIcon({
+        html: `<div class="user-navigation-pointer" style="transform:rotate(${bearing}deg)"></div>`,
+        className: 'user-navigation-icon',
+        iconSize: [32, 32],
+        iconAnchor: [16, 18]
+      });
+    }
+
+    function updateUserLocationMarker(lat, lng, isNavigating = S.navigating) {
+      const markerBearing = isNavigating ? (S.bearing || 0) : 0;
+      const icon = getUserLocationIcon(isNavigating, markerBearing);
+      if (S.userMarker) {
+        S.userMarker.setLatLng([lat, lng]);
+        S.userMarker.setIcon(icon);
+      } else {
+        S.userMarker = L.marker([lat, lng], { icon, interactive: false, zIndexOffset: 1000 }).addTo(S.map);
+      }
+    }
+
+    function calculateBearing(lat1, lng1, lat2, lng2) {
+      const p1 = lat1 * Math.PI / 180;
+      const p2 = lat2 * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+      const y = Math.sin(dLng) * Math.cos(p2);
+      const x = Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dLng);
+      return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+    }
+
+    function smoothBearing(nextBearing) {
+      if (!Number.isFinite(nextBearing)) return S.bearing || 0;
+      if (!Number.isFinite(S.bearing)) return nextBearing;
+      let diff = nextBearing - S.bearing;
+      diff = (diff + 540) % 360 - 180;
+      return (S.bearing + diff * 0.25 + 360) % 360;
+    }
+
+    function getRouteBearingFromPosition(lat, lng) {
+      if (!S.routeCoords || S.routeCoords.length < 2) return null;
+      let nearestIndex = 0;
+      let nearestMeters = Infinity;
+      for (let i = 0; i < S.routeCoords.length - 1; i++) {
+        const [rLat, rLng] = S.routeCoords[i];
+        const d = calculateDistanceMeters(lat, lng, rLat, rLng);
+        if (d < nearestMeters) {
+          nearestMeters = d;
+          nearestIndex = i;
+        }
+      }
+      const nextIndex = Math.min(nearestIndex + 1, S.routeCoords.length - 1);
+      const from = S.routeCoords[nearestIndex];
+      const to = S.routeCoords[nextIndex];
+      return calculateBearing(from[0], from[1], to[0], to[1]);
+    }
+
+    function getNavigationCameraTarget(lat, lng) {
+      const R = 6371e3;
+      const distAhead = 35;
+      const lat1Rad = lat * Math.PI / 180;
+      const lng1Rad = lng * Math.PI / 180;
+      const brngRad = (S.bearing || 0) * Math.PI / 180;
+      const lat2Rad = Math.asin(Math.sin(lat1Rad) * Math.cos(distAhead / R) + Math.cos(lat1Rad) * Math.sin(distAhead / R) * Math.cos(brngRad));
+      const lng2Rad = lng1Rad + Math.atan2(Math.sin(brngRad) * Math.sin(distAhead / R) * Math.cos(lat1Rad), Math.cos(distAhead / R) - Math.sin(lat1Rad) * Math.sin(lat2Rad));
+      return { lat: lat2Rad * 180 / Math.PI, lng: lng2Rad * 180 / Math.PI };
+    }
+
+    function getMapPaneEl() {
+      return S.map && S.map.getPane ? S.map.getPane('mapPane') : null;
+    }
+
+    function clearNavigationMapRotation() {
+      const mapPane = getMapPaneEl();
+      if (!mapPane) return;
+      mapPane.style.transform = '';
+      mapPane.style.transformOrigin = '';
+      mapPane.style.transition = '';
+    }
+
+    function updateNavigationCamera(force = false) {
+      if (!S.map || S.userLat === null || S.userLng === null) return;
+      const mapPane = getMapPaneEl();
+      if (mapPane && S.navigating && isMobileView()) {
+        mapPane.style.transform = `rotate(${-S.bearing}deg) scale(1.4)`;
+        mapPane.style.transformOrigin = '50% 50%';
+        mapPane.style.transition = 'transform 0.45s ease-out';
+      } else {
+        clearNavigationMapRotation();
+      }
+      const target = getNavigationCameraTarget(S.userLat, S.userLng);
+      S.lastTargetLat = target.lat;
+      S.lastTargetLng = target.lng;
+      if (force || (S.autoCenter !== false && Date.now() - S.navStartTime > 1500)) {
+        S.map.panTo([target.lat, target.lng], { animate: true, duration: 0.6 });
+      }
+    }
 
     // Search with autocomplete
     function setupSearch(inputId, suggestionsId) {
@@ -1939,9 +2240,10 @@
     async function fetchParking() {
       const gl = document.getElementById('globalLoader');
       gl.classList.remove('hidden');
+      const timeCtx = getClientTimeContext();
 
       try {
-        const r = await fetch(`/api/parking/nearby?lat=${S.lat}&lng=${S.lng}`);
+        const r = await fetch(`/api/parking/nearby?lat=${S.lat}&lng=${S.lng}&hour=${timeCtx.hour}&day_of_week=${timeCtx.day_of_week}`);
         const data = await r.json();
         if (!data.success) throw new Error(data.error);
 
@@ -1950,7 +2252,7 @@
 
         const avgAvail = S.spots.length > 0 ? (S.spots.reduce((acc, s) => acc + (s.availability_pct || 0), 0) / S.spots.length).toFixed(0) : '0';
         document.getElementById('kpiSpots').textContent = `${avgAvail}%`;
-        document.getElementById('kpiConfidence').textContent = pred.xgboost_confidence ? pred.xgboost_confidence + '%' : '—';
+        document.getElementById('kpiConfidence').textContent = Number.isFinite(pred.xgboost_confidence) ? pred.xgboost_confidence + '%' : '—';
         const sourceLabel = data.source === 'verified' ? 'SOURCE: VERIFIED' : 'SOURCE: PREDICTIVE';
 
         // Update Smart Summary
@@ -1982,12 +2284,12 @@
 
     async function fetchPredictInsight() {
       try {
-        const h = new Date().getHours();
-        const r = await fetch(`/api/predict?location_type=generic&hour=${h}`);
+        const timeCtx = getClientTimeContext();
+        const r = await fetch(`/api/predict?location_type=generic&hour=${timeCtx.hour}&day_of_week=${timeCtx.day_of_week}`);
         const data = await r.json();
         if (!data.success || !data.data) return;
         const confidence = data.data.xgboost_confidence;
-        if (confidence) {
+        if (Number.isFinite(confidence)) {
           document.getElementById('kpiConfidence').textContent = `${confidence}%`;
         }
       } catch (e) {
@@ -2010,7 +2312,7 @@
       <div class="flex justify-between items-start">
         <div class="flex-1 min-w-0">
           <h4 class="font-bold text-sm truncate">${s.name}</h4>
-          <p class="text-xs opacity-50 mt-0.5">${s.distance_meters || '?'}m · ${s.type || 'surface'} · AI Confidence: ${s.confidence || 0}%</p>
+          <p class="text-xs opacity-50 mt-0.5">${s.distance_meters || '?'}m · ${s.type || 'surface'} · Model Confidence: ${s.confidence || 0}%</p>
         </div>
         <div class="flex flex-col items-end gap-1 shrink-0 ml-2">
             <span class="accent-badge ${statusClass} px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">${statusLabel}</span>
@@ -2078,6 +2380,7 @@
       // Show save button when a spot is selected (pre-navigation)
       document.getElementById('saveSpotBtn').style.display = 'inline-block';
       document.getElementById('spotModal').classList.remove('hidden');
+      setChatFabVisibleForState();
       if (S.view !== 'navigation') setView('navigation');
     }
 
@@ -2159,8 +2462,21 @@
       S.autoCenter = true;
       const btn = document.getElementById('recenterNavBtn');
       if (btn) btn.classList.add('hidden');
-      if (S.lastTargetLat !== undefined) {
-        S.map.panTo([S.lastTargetLat, S.lastTargetLng], { animate: true, duration: 0.6 });
+      if (S.userLat !== null && S.userLng !== null) {
+        updateNavigationCamera(true);
+        updateUserLocationMarker(S.userLat, S.userLng, S.navigating);
+        showToast('Following your live location.');
+      } else if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            S.userLat = pos.coords.latitude;
+            S.userLng = pos.coords.longitude;
+            updateUserLocationMarker(S.userLat, S.userLng, S.navigating);
+            updateNavigationCamera(true);
+          },
+          () => showToast('Could not recenter. Location permission needed.'),
+          { enableHighAccuracy: true, timeout: 8000, maximumAge: 1000 }
+        );
       }
     }
 
@@ -2186,11 +2502,20 @@
       const origLat = S.userLat !== null ? S.userLat : center.lat;
       const origLng = S.userLng !== null ? S.userLng : center.lng;
       S.navStartTime = Date.now();
+      S.bearing = getRouteBearingFromPosition(origLat, origLng) ?? calculateBearing(origLat, origLng, S.currentDest.lat, S.currentDest.lng);
+      if (S.userLat !== null && S.userLng !== null) {
+        updateUserLocationMarker(S.userLat, S.userLng, true);
+      }
+      S.map.closePopup();
       S.map.flyTo([origLat, origLng], 17.5, { animate: true, duration: 1.5 });
       document.getElementById('modalInfo').textContent = 'Navigating to ' + S.currentDest.name;
       document.getElementById('startNavBtn').style.display = 'none';
       // Hide save button during active navigation
       document.getElementById('saveSpotBtn').style.display = 'none';
+      if (isMobileView()) {
+        document.getElementById('spotModal').classList.add('hidden');
+      }
+      setChatFabVisibleForState();
       document.getElementById('speedometer').classList.remove('hidden');
       document.getElementById('navSlide').classList.remove('hidden');
       document.getElementById('navSlideTitle').textContent = S.currentDest.name;
@@ -2207,11 +2532,6 @@
             const now = Date.now();
             S.userLat = pos.coords.latitude;
             S.userLng = pos.coords.longitude;
-            if (S.userMarker) {
-              S.userMarker.setLatLng([S.userLat, S.userLng]);
-            } else {
-              S.userMarker = L.circleMarker([S.userLat, S.userLng], { radius: 8, fillColor: '#0041c9', fillOpacity: 1, color: '#fff', weight: 3 }).addTo(S.map);
-            }
 
             if (pos.coords.speed !== null && pos.coords.speed >= 0) {
               S.currentSpeedKmh = pos.coords.speed * 3.6;
@@ -2226,23 +2546,14 @@
               }
             }
 
-            let newBearing = S.bearing || 0;
-            if (S.lastNavSample && S.currentSpeedKmh > 2) {
-              const lat1 = S.lastNavSample.lat * Math.PI / 180;
-              const lat2 = S.userLat * Math.PI / 180;
-              const dLng = (S.userLng - S.lastNavSample.lng) * Math.PI / 180;
-              const y = Math.sin(dLng) * Math.cos(lat2);
-              const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
-              const brng = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
-              if (S.bearing === undefined) newBearing = brng;
-              else {
-                let diff = brng - S.bearing;
-                diff = (diff + 540) % 360 - 180;
-                newBearing = (S.bearing + diff * 0.2 + 360) % 360;
-              }
+            let nextBearing = Number.isFinite(pos.coords.heading) && pos.coords.heading >= 0 ? pos.coords.heading : null;
+            if (nextBearing === null && S.lastNavSample && S.currentSpeedKmh > 1.5) {
+              nextBearing = calculateBearing(S.lastNavSample.lat, S.lastNavSample.lng, S.userLat, S.userLng);
             }
-            S.bearing = newBearing;
+            if (nextBearing === null) nextBearing = getRouteBearingFromPosition(S.userLat, S.userLng);
+            if (nextBearing !== null) S.bearing = smoothBearing(nextBearing);
             S.lastNavSample = { lat: S.userLat, lng: S.userLng, ts: now };
+            updateUserLocationMarker(S.userLat, S.userLng, true);
 
             const dist = calculateDistanceMeters(S.userLat, S.userLng, S.currentDest.lat, S.currentDest.lng);
             const remKm = dist / 1000;
@@ -2270,29 +2581,7 @@
             document.getElementById('modalInfo').textContent = `Navigating... ${remKm.toFixed(2)} km left · ETA ${etaDisplay}`;
             document.getElementById('navSlideMeta').textContent = `${remKm.toFixed(2)} km remaining • ETA ${etaDisplay}`;
 
-            // Rotate map and calculate bottom 1/3 offset
-            const mapContainer = document.getElementById('map');
-            if (mapContainer) {
-              mapContainer.style.transform = `rotate(${-S.bearing}deg) scale(1.4)`;
-              mapContainer.style.transition = 'transform 0.5s ease-out';
-            }
-
-            const R = 6371e3;
-            const distAhead = 35; // Meters ahead to push user to bottom 1/3
-            const lat1Rad = S.userLat * Math.PI / 180;
-            const lng1Rad = S.userLng * Math.PI / 180;
-            const brngRad = S.bearing * Math.PI / 180;
-            const lat2Rad = Math.asin(Math.sin(lat1Rad) * Math.cos(distAhead / R) + Math.cos(lat1Rad) * Math.sin(distAhead / R) * Math.cos(brngRad));
-            const lng2Rad = lng1Rad + Math.atan2(Math.sin(brngRad) * Math.sin(distAhead / R) * Math.cos(lat1Rad), Math.cos(distAhead / R) - Math.sin(lat1Rad) * Math.sin(lat2Rad));
-            const targetLat = lat2Rad * 180 / Math.PI;
-            const targetLng = lng2Rad * 180 / Math.PI;
-
-            S.lastTargetLat = targetLat;
-            S.lastTargetLng = targetLng;
-
-            if (S.autoCenter !== false && Date.now() - S.navStartTime > 1500) {
-              S.map.panTo([targetLat, targetLng], { animate: true, duration: 0.6 });
-            }
+            updateNavigationCamera();
 
             if (dist < 20) {
               showToast('Destination reached!');
@@ -2301,10 +2590,12 @@
               S.navigating = false;
               document.getElementById('startNavBtn').style.display = 'inline-block';
               document.getElementById('speedometer').classList.add('hidden');
+              setChatFabVisibleForState();
               navigator.geolocation.clearWatch(S.geoWatchId);
               S.geoWatchId = null;
-              if (mapContainer) {
-                mapContainer.style.transform = 'none';
+              clearNavigationMapRotation();
+              if (S.userLat !== null && S.userLng !== null) {
+                updateUserLocationMarker(S.userLat, S.userLng, false);
               }
             }
           },
@@ -2343,13 +2634,7 @@
             // Switch to navigation view to show the map only if not silent
             if (!silent && S.view !== 'navigation') setView('navigation');
             S.map.flyTo([latitude, longitude], 17);
-            // Use the styled blue circleMarker (Google Maps-style blue dot)
-            if (S.userMarker) {
-              S.map.removeLayer(S.userMarker);
-            }
-            S.userMarker = L.circleMarker([latitude, longitude], {
-              radius: 8, fillColor: '#0041c9', fillOpacity: 1, color: '#fff', weight: 3
-            }).addTo(S.map);
+            updateUserLocationMarker(latitude, longitude, S.navigating);
             if (!silent) showToast('Location found!');
             S.hasFetched = true;
             fetchParking();
@@ -2381,6 +2666,7 @@
         document.getElementById('modalName').textContent = name;
         document.getElementById('modalInfo').textContent = 'Calculating route...';
         document.getElementById('spotModal').classList.remove('hidden');
+        setChatFabVisibleForState();
       }
 
       try {
@@ -2392,6 +2678,7 @@
         if (data.routes && data.routes.length > 0) {
           const route = data.routes[0];
           const coords = route.geometry.coordinates.map(c => [c[1], c[0]]); // [lat,lng]
+          S.routeCoords = coords;
           const distKm = (route.distance / 1000).toFixed(1);
           const etaMins = Math.round(route.duration / 60);
           S.routeTotalKm = Number(distKm);
@@ -2440,7 +2727,7 @@
           S.destinationMarker = destMarker;
 
           // Update modal
-          document.getElementById('modalInfo').innerHTML = `${distKm} km · ETA ${formatEtaFromMinutes(etaMins)}<br><span style="font-size:10px;opacity:0.8;">Route includes final-segment congestion coloring based on predicted availability.</span>`;
+          document.getElementById('modalInfo').innerHTML = `${distKm} km · ETA ${formatEtaFromMinutes(etaMins)}<span class="route-note">Congestion color reflects predicted availability.</span>`;
           if (!S.navigating) {
             document.getElementById('routeNavBtn').style.display = 'none';
             document.getElementById('startNavBtn').style.display = 'inline-block';
@@ -2454,6 +2741,7 @@
         console.warn('OSRM Route error, using direct line fallback:', e);
         // Fallback direct line route
         const coords = [[origLat, origLng], [destLat, destLng]];
+        S.routeCoords = coords;
         const distKm = (calculateDistanceMeters(origLat, origLng, destLat, destLng) / 1000).toFixed(1);
         const etaMins = Math.round((distKm * 1000) / 250); // Rough ETA at 15km/h
 
@@ -2479,7 +2767,7 @@
         S.destinationMarker = L.marker([destLat, destLng], { icon: getMarkerIcon('high') }).addTo(S.map)
           .bindPopup(`<b>${name}</b><br>Destination (Direct Line)`).openPopup();
 
-        document.getElementById('modalInfo').innerHTML = `${distKm} km · ETA ${formatEtaFromMinutes(etaMins)}<br><span style="font-size:10px;opacity:0.8;">Route includes final-segment congestion coloring based on predicted availability.</span>`;
+        document.getElementById('modalInfo').innerHTML = `${distKm} km · ETA ${formatEtaFromMinutes(etaMins)}<span class="route-note">Congestion color reflects predicted availability.</span>`;
         if (!S.navigating) {
           document.getElementById('routeNavBtn').style.display = 'none';
           document.getElementById('startNavBtn').style.display = 'inline-block';
@@ -2503,7 +2791,7 @@
 
     document.getElementById('chatClose').addEventListener('click', () => {
       chatWin.classList.remove('open');
-      chatFab.style.display = 'flex';
+      setChatFabVisibleForState();
     });
 
     function addChatMsg(text, isUser) {

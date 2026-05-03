@@ -118,10 +118,6 @@ def _ml_predict(hour, day_of_week=None, location_id=0, capacity_bucket=1,
         loc_map = {'university':0, 'mall':1, 'hospital':2, 'station':3, 'residential':4, 'temple':5, 'market':6, 'office':7, 'beach':8}
         loc_encoded = loc_map.get(location_type.lower(), 0)
 
-        now = datetime.datetime.now()
-        hour = now.hour
-        day_of_week = now.weekday()
-
         feat_dict = {
             'hour': hour,
             'day_of_week': day_of_week,
@@ -161,14 +157,14 @@ def _ml_predict(hour, day_of_week=None, location_id=0, capacity_bucket=1,
                 # 85% XGBoost, 15% RL
                 proba = proba * 0.85 + q_arr * 0.15
 
-        # Temperature sharpening: amplify the dominant prediction
-        # This makes the model's strongest signal stand out clearly
-        temperature = 0.3  # Lower = sharper (more confident)
-        proba_sharp = np.exp(np.log(proba + 1e-8) / temperature)
-        proba_sharp = proba_sharp / np.sum(proba_sharp)
+        # Normalize the final ensemble output for a stable, comparable confidence score.
+        proba = np.maximum(proba, 0)
+        proba_sum = np.sum(proba)
+        if proba_sum > 0:
+            proba = proba / proba_sum
 
-        final_pred = int(np.argmax(proba_sharp))
-        final_conf = round(float(np.max(proba_sharp)) * 100, 1)
+        final_pred = int(np.argmax(proba))
+        final_conf = round(float(np.max(proba)) * 100, 1)
         
         # Calculate Availability Percentage (2=Available, 1=Limited, 0=Full)
         # Using a weighted blend to get a smooth 0-100% score
@@ -290,10 +286,11 @@ def _haversine(lat1, lng1, lat2, lng2):
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
-def _enrich_spot(spot, dest_lat, dest_lng, hour):
+def _enrich_spot(spot, dest_lat, dest_lng, hour, day_of_week=None):
     """Add ML + RL prediction fields to a spot dict."""
     loc_type = spot.get('location_type', 'generic')
-    day_of_week = datetime.datetime.now().weekday()
+    if day_of_week is None:
+        day_of_week = datetime.datetime.now().weekday()
 
     capacity = int(spot.get('capacity', 50))
     if capacity > 100:
@@ -335,14 +332,14 @@ def _is_near_srm(lat, lng):
     return _haversine(lat, lng, SRM_CENTER_LAT, SRM_CENTER_LNG) <= SRM_RADIUS_M
 
 
-def _get_srm_spots(dest_lat, dest_lng, hour):
+def _get_srm_spots(dest_lat, dest_lng, hour, day_of_week=None):
     import copy
     spots = []
     for raw in SRM_PARKING_SPOTS:
         spot = copy.deepcopy(raw)
         spot['id'] = raw['id']
         spot['source'] = 'verified'
-        _enrich_spot(spot, dest_lat, dest_lng, hour)
+        _enrich_spot(spot, dest_lat, dest_lng, hour, day_of_week)
         spots.append(spot)
     spots.sort(key=lambda s: s['distance_meters'])
     return spots
@@ -374,7 +371,7 @@ out center;"""
         return []
 
 
-def _get_osm_spots(dest_lat, dest_lng, hour):
+def _get_osm_spots(dest_lat, dest_lng, hour, day_of_week=None):
     elements = _query_overpass(dest_lat, dest_lng)
     if not elements:
         return []
@@ -429,7 +426,8 @@ def _get_osm_spots(dest_lat, dest_lng, hour):
         }
         
         # ML predict specifically for this spot's features
-        day_of_week = datetime.datetime.now().weekday()
+        if day_of_week is None:
+            day_of_week = datetime.datetime.now().weekday()
         ml = _ml_predict(hour, day_of_week, location_id=loc_id_hash, capacity_bucket=cap_bucket, location_type='generic')
         
         if ml['model_used'] != 'fallback':
@@ -496,9 +494,10 @@ def parking_nearby():
         lng = float(request.args.get('lng', 78.9629))
         location_type = request.args.get('location_type', 'generic')
         hour = int(request.args.get('hour', datetime.datetime.now().hour))
+        day_of_week = int(request.args.get('day_of_week', datetime.datetime.now().weekday()))
 
         # ML prediction (XGBoost + Q-table)
-        ml_result = _ml_predict(hour, location_type=location_type)
+        ml_result = _ml_predict(hour, day_of_week=day_of_week, location_type=location_type)
         # Legacy RL prediction (kept for compatibility)
         traffic = _get_traffic_level(hour)
         is_special_day = 0
@@ -518,12 +517,12 @@ def parking_nearby():
 
         # STEP 1 — SRM hardcoded
         if _is_near_srm(lat, lng):
-            spots = _get_srm_spots(lat, lng, hour)
+            spots = _get_srm_spots(lat, lng, hour, day_of_week)
             source = 'verified'
 
         # STEP 2 — Overpass API
         if not spots:
-            spots = _get_osm_spots(lat, lng, hour)
+            spots = _get_osm_spots(lat, lng, hour, day_of_week)
             if spots:
                 source = 'osm'
 
@@ -544,9 +543,10 @@ def predict():
     try:
         location_type = request.args.get('location_type', 'generic')
         hour = int(request.args.get('hour', datetime.datetime.now().hour))
+        day_of_week = int(request.args.get('day_of_week', datetime.datetime.now().weekday()))
 
         # XGBoost + Q-table prediction
-        ml_result = _ml_predict(hour, location_type=location_type)
+        ml_result = _ml_predict(hour, day_of_week=day_of_week, location_type=location_type)
         # Legacy RL prediction (for reasoning text)
         traffic = _get_traffic_level(hour)
         is_special_day = 0
