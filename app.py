@@ -9,6 +9,7 @@ import pickle
 import urllib.request
 import urllib.parse
 import numpy as np
+import xgboost as xgb
 from flask import Flask, jsonify, request, render_template, send_from_directory
 from flask_cors import CORS
 from rl.q_agent import ParkingQAgent
@@ -26,6 +27,7 @@ REPORTS_PATH = os.path.join(BASE_DIR, 'parking_reports.json')
 KNOWN_SPOTS_PATH = os.path.join(BASE_DIR, 'known_parking_spots.json')
 QTABLE_PATH = os.path.join(BASE_DIR, 'qtable.json')
 MODEL_PATH = os.path.join(BASE_DIR, 'model.pkl')
+MODEL_JSON_PATH = os.path.join(BASE_DIR, 'model.json')
 FEATURE_COLS_PATH = os.path.join(BASE_DIR, 'feature_columns.json')
 storage = ParkNavStorage(BASE_DIR)
 
@@ -48,10 +50,14 @@ trained_qtable = None
 MODEL_LOADED = False
 
 try:
-    with open(MODEL_PATH, 'rb') as f:
-        xgb_model = pickle.load(f)
     with open(FEATURE_COLS_PATH, 'r') as f:
         feature_columns = json.load(f)
+    if os.path.exists(MODEL_JSON_PATH):
+        xgb_model = xgb.Booster()
+        xgb_model.load_model(MODEL_JSON_PATH)
+    else:
+        with open(MODEL_PATH, 'rb') as f:
+            xgb_model = pickle.load(f)
     trained_qtable = storage.load_json(QTABLE_PATH)
     MODEL_LOADED = True
     print(f"[ParkNav AI] XGBoost model loaded successfully")
@@ -133,8 +139,11 @@ def _ml_predict(hour, day_of_week=None, location_id=0, capacity_bucket=1,
         features = [feat_dict.get(col, 0) for col in feature_columns]
         features_2d = np.array([features])
 
-        pred = int(xgb_model.predict(features_2d)[0])
-        proba = xgb_model.predict_proba(features_2d)[0]
+        if isinstance(xgb_model, xgb.Booster):
+            dmatrix = xgb.DMatrix(features_2d, feature_names=feature_columns)
+            proba = xgb_model.predict(dmatrix)[0]
+        else:
+            proba = xgb_model.predict_proba(features_2d)[0]
         
         # --- True Ensemble: Combine XGBoost with Location-Aware RL Q-Table ---
         rl_pred = agent.get_prediction(location_type, hour, traffic, is_special_day)
