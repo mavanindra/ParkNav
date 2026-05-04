@@ -95,17 +95,28 @@ class ParkNavStorage:
             'value': value,
             'updated_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }).encode('utf-8')
+        
         headers = self._headers()
+        # Ensure 'Prefer' header is set for upsert logic
         headers['Prefer'] = 'resolution=merge-duplicates,return=minimal'
+        
+        url = self._state_url(upsert=True)
         req = urllib.request.Request(
-            self._state_url(upsert=True),
+            url,
             data=payload,
             headers=headers,
             method='POST',
         )
         try:
-            with urllib.request.urlopen(req, timeout=10):
+            with urllib.request.urlopen(req, timeout=10) as response:
                 return
+        except urllib.error.HTTPError as e:
+            body = e.read().decode('utf-8')
+            print(f'[ParkNav AI] Supabase HTTP Error {e.code} for {key}: {body}')
+            # If we get a 404, it means the table 'parknav_state' is literally not visible to the API
+            if e.code == 404:
+                raise Exception(f"Table 'parknav_state' not found in Supabase. Did you run the SQL? (Error: {body})")
+            raise Exception(f"Supabase Error {e.code}: {body}")
         except (urllib.error.URLError, TimeoutError) as e:
-            print(f'[ParkNav AI] Supabase write failed for {key}: {e}')
-            raise
+            print(f'[ParkNav AI] Supabase connection failed for {key}: {e}')
+            raise Exception(f"Connection to Supabase failed: {e}")
