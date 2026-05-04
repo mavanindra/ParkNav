@@ -17,12 +17,25 @@ class ParkNavStorage:
 
     def __init__(self, base_dir):
         self.base_dir = base_dir
-        self.supabase_url = os.environ.get('SUPABASE_URL', '').rstrip('/')
+
+        # Check ALL possible env var names (Vercel uses NEXT_PUBLIC_ prefix)
+        self.supabase_url = (
+            os.environ.get('SUPABASE_URL', '')
+            or os.environ.get('NEXT_PUBLIC_SUPABASE_URL', '')
+        ).rstrip('/')
+
         self.supabase_key = (
             os.environ.get('SUPABASE_SERVICE_ROLE_KEY', '')
             or os.environ.get('SUPABASE_ANON_KEY', '')
+            or os.environ.get('NEXT_PUBLIC_SUPABASE_ANON_KEY', '')
+            or os.environ.get('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', '')
         )
+
         self.use_supabase = bool(self.supabase_url and self.supabase_key)
+        if self.use_supabase:
+            print(f'[ParkNav AI] Supabase enabled: {self.supabase_url} (key: {self.supabase_key[:12]}...)')
+        else:
+            print(f'[ParkNav AI] Supabase NOT configured. Using local file storage.')
 
     def load_json(self, path, default=None):
         key = self._key_for_path(path)
@@ -37,35 +50,48 @@ class ParkNavStorage:
     def save_json(self, path, data):
         key = self._key_for_path(path)
         if self.use_supabase and key:
-            self._save_supabase_value(key, data)
-            return
+            try:
+                self._save_supabase_value(key, data)
+                return
+            except Exception as e:
+                print(f'[ParkNav AI] Supabase save failed for {key}, falling back to local: {e}')
+                # Fall through to local save
         self._save_file(path, data)
 
     def _key_for_path(self, path):
         return self.PATH_KEYS.get(os.path.basename(path))
 
     def _load_file(self, path, default=None):
-        if os.path.exists(path):
-            try:
-                with open(path, 'r') as f:
-                    return json.load(f)
-            except (json.JSONDecodeError, IOError):
-                pass
+        # Try the original path first, then /tmp fallback (for Vercel)
+        for p in [path, os.path.join('/tmp', os.path.basename(path))]:
+            if os.path.exists(p):
+                try:
+                    with open(p, 'r') as f:
+                        return json.load(f)
+                except (json.JSONDecodeError, IOError):
+                    pass
         return default
 
     def _save_file(self, path, data):
-        with open(path, 'w') as f:
-            json.dump(data, f, indent=2)
+        try:
+            with open(path, 'w') as f:
+                json.dump(data, f, indent=2)
+        except (IOError, OSError):
+            # Vercel has read-only filesystem, use /tmp as fallback
+            tmp_path = os.path.join('/tmp', os.path.basename(path))
+            try:
+                with open(tmp_path, 'w') as f:
+                    json.dump(data, f, indent=2)
+            except (IOError, OSError) as e:
+                print(f'[ParkNav AI] Cannot write to {path} or {tmp_path}: {e}')
 
     def _headers(self):
         headers = {
             'apikey': self.supabase_key,
             'Content-Type': 'application/json',
+            # ALWAYS send Authorization header - PostgREST requires it
+            'Authorization': f'Bearer {self.supabase_key}',
         }
-        # Supabase secret keys (sb_secret_...) are not JWTs and should not be
-        # sent as Bearer tokens. Legacy service_role keys still expect it.
-        if not self.supabase_key.startswith('sb_'):
-            headers['Authorization'] = f'Bearer {self.supabase_key}'
         return headers
 
     def _state_url(self, key=None, upsert=False):
@@ -85,7 +111,7 @@ class ParkNavStorage:
                 rows = json.loads(resp.read().decode('utf-8'))
             if rows:
                 return rows[0].get('value')
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
+        except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, json.JSONDecodeError) as e:
             print(f'[ParkNav AI] Supabase read failed for {key}; using local fallback: {e}')
         return None
 
@@ -95,11 +121,10 @@ class ParkNavStorage:
             'value': value,
             'updated_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }).encode('utf-8')
-        
+
         headers = self._headers()
-        # Ensure 'Prefer' header is set for upsert logic
         headers['Prefer'] = 'resolution=merge-duplicates,return=minimal'
-        
+
         url = self._state_url(upsert=True)
         req = urllib.request.Request(
             url,
@@ -113,9 +138,6 @@ class ParkNavStorage:
         except urllib.error.HTTPError as e:
             body = e.read().decode('utf-8')
             print(f'[ParkNav AI] Supabase HTTP Error {e.code} for {key}: {body}')
-            # If we get a 404, it means the table 'parknav_state' is literally not visible to the API
-            if e.code == 404:
-                raise Exception(f"Table 'parknav_state' not found in Supabase. Did you run the SQL? (Error: {body})")
             raise Exception(f"Supabase Error {e.code}: {body}")
         except (urllib.error.URLError, TimeoutError) as e:
             print(f'[ParkNav AI] Supabase connection failed for {key}: {e}')
