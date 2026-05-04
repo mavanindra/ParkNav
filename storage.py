@@ -107,7 +107,7 @@ class ParkNavStorage:
     def _load_supabase_value(self, key):
         req = urllib.request.Request(self._state_url(key), headers=self._headers())
         try:
-            with urllib.request.urlopen(req, timeout=10) as resp:
+            with urllib.request.urlopen(req, timeout=5) as resp:
                 rows = json.loads(resp.read().decode('utf-8'))
             if rows:
                 return rows[0].get('value')
@@ -133,7 +133,7 @@ class ParkNavStorage:
             method='POST',
         )
         try:
-            with urllib.request.urlopen(req, timeout=10) as response:
+            with urllib.request.urlopen(req, timeout=5) as response:
                 return
         except urllib.error.HTTPError as e:
             body = e.read().decode('utf-8')
