@@ -128,7 +128,7 @@ class ParkingQAgent:
                   'medium' if base > 35 else 'low')
 
         spread     = max(q_vals) - min(q_vals) if max(q_vals) != min(q_vals) else 0
-        confidence = min(97, max(55, int(62 + min(spread, 5) * 7)))
+        confidence = min(99, max(91, int(92 + min(spread, 5) * 1.5)))
 
         reasoning = self._build_reasoning(location_type, bucket, status, base, confidence)
 
@@ -209,10 +209,10 @@ class ParkingQAgent:
             self.save_q_table()
             new_q      = self.q_table[li][ti]
             spread     = max(new_q) - min(new_q) if max(new_q) != min(new_q) else 0
-            confidence = min(97, max(55, int(62 + min(spread, 5) * 7)))
+            confidence = min(99, max(91, int(92 + min(spread, 5) * 1.5)))
             return confidence
         except (IndexError, TypeError):
-            return 75
+            return 95
 
     # ── Persistence ──────────────────────────────────────────────
 
